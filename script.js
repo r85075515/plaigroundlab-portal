@@ -1,14 +1,44 @@
-// PlAIground Lab 入口站：僅處理“即將上架”卡片的提示；無此腳本時頁面仍可正常瀏覽。
+// Portal 05: language toggle (no reload) + coming-soon toast.
+// No page content is created by this script; every string below already
+// exists in index.html as a data-zh / data-en pair.
 (function () {
-  var card = document.getElementById('soon-card');
+  var currentLang = 'zh-Hant';
+  var toastTexts = {
+    gpu: {
+      'zh-Hant': 'GPU 礦場大亨即將上架 — 連結待部署，敬請期待。',
+      en: 'GPU Tycoon is coming soon — the link is not deployed yet.'
+    },
+    blog: {
+      'zh-Hant': 'Blog 即將上架 — 預告位先放在這裡，敬請期待。',
+      en: 'Blog is coming soon — this is a preview slot for now.'
+    }
+  };
+  function applyLang(lang) {
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-zh]').forEach(function (el) {
+      var text = lang === 'en' ? el.getAttribute('data-en') : el.getAttribute('data-zh');
+      if (text !== null) el.textContent = text;
+    });
+    document.querySelectorAll('.lang-btn').forEach(function (btn) {
+      var active = btn.getAttribute('data-lang') === lang;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+  }
+  document.querySelectorAll('.lang-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () { applyLang(btn.getAttribute('data-lang')); });
+  });
   var toast = document.getElementById('toast');
-  if (!card || !toast) return;
   var timer = null;
-  card.addEventListener('click', function (event) {
-    event.preventDefault();
-    toast.textContent = '即將上架 — 鏈接待部署，敬請期待。';
-    toast.hidden = false;
-    if (timer) clearTimeout(timer);
-    timer = setTimeout(function () { toast.hidden = true; }, 3000);
+  document.querySelectorAll('.soon-card').forEach(function (card) {
+    card.addEventListener('click', function (event) {
+      event.preventDefault();
+      if (!toast) return;
+      toast.textContent = toastTexts[card.getAttribute('data-soon')][currentLang];
+      toast.hidden = false;
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(function () { toast.hidden = true; }, 3000);
+    });
   });
 })();
